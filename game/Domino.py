@@ -1,3 +1,0 @@
-class Domino:
-    def __init__(self):
-        ...
