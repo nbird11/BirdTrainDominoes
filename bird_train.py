@@ -115,10 +115,10 @@ class Player:
 
 
 class Branch:
-    """TODO A branch of the play area."""
-    def __init__(self, player: Player) -> None:
+    """A branch of the play area."""
+    def __init__(self, player: Player | None = None) -> None:
         """Constructs a `Branch` object."""
-        self.player: Player = player
+        self.player: Player | None = player
         # Assign whether the branch can be played on by anyone.
         self.train_on: bool = None
         if self.player:
@@ -128,11 +128,20 @@ class Branch:
         self.train: list[Domino] = []
 
     def __repr__(self) -> str:
+        """Representation of a `Branch` on the `Board`"""
         rep: str = "Branch("
         rep += f"player={self.player}, "
         rep += f"train_on={self.train_on}, "
         rep += f"train={self.train})"
         return rep
+
+    def toggle_train_on(self) -> None:
+        """Toggles whether the branch is set to be able to be played on by
+        anyone or not. If there is no player attached to the branch, `train_on`
+        should always remain False.
+        """
+        if self.player:
+            self.train_on = not self.train_on
 
 
 class Board:
@@ -143,11 +152,14 @@ class Board:
         self.round_num: int = num_round
         self.middle_tile: Domino = Domino(self.round_num, self.round_num)
         self.players: list[Player] = players
-
+        # Create list of all branches stemming from the middle
         for player in self.players:
             self.branches.append(Branch(player))
+        for _ in range(AMMT_BRANCHES-len(self.players)):
+            self.branches.append(Branch())
         
-        print(f"board.branches[0].player={self.branches[0].player}")
+        for i, branch in enumerate(self.branches):
+            print(f"branch_{i}={branch}")
 
     def __repr__(self) -> str:
         rep: str = "Board("
@@ -180,11 +192,12 @@ class Game:
     def __repr__(self) -> None:
         """Representation of all current game info."""
         rep: str = "Game("
-        rep += f"ammt_players={self.ammt_players},"
-        rep += f"players={self.players},"
-        rep += f"turn_i={self.turn_i},"
-        rep += f"round_num={self.round_num},"
-        rep += f"boneyard={self.boneyard})"
+        rep += f"ammt_players={self.ammt_players}, "
+        rep += f"players={self.players}, "
+        rep += f"turn_i={self.turn_i}, "
+        rep += f"round_num={self.round_num}, "
+        rep += f"boneyard={self.boneyard}, "
+        rep += f"board={self.board})"
         return rep
 
     def gameloop(self) -> None:
