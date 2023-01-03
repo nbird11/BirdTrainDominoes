@@ -48,13 +48,14 @@ class Boneyard:
         self.tile_count: int = len(self.draw_pile)
         self.round_num: int = num_round
 
-    def __repr__(self) -> str:
+    def __repr__(self, depth: int = 1) -> str:
         """Representation of the `Boneyard` object, including all dominoes
         still left in the draw pile.
         """
         self._update()
-        # rep: str = "Boneyard("
-        # rep += "\n\t\tdraw_pile=["
+
+     #### Remnant of three-columned draw_pile repr ####
+        # rep: str = "\n\t\tdraw_pile=["
         # for i, domino in enumerate(self.draw_pile):
         #     # Last Domino but not first column
         #     if i == len(self.draw_pile)-1 and i % 3 != 0:
@@ -75,14 +76,21 @@ class Boneyard:
         #         col_3: Domino = domino
         #         rep += f"{col_3}"
         # rep += f"],"
-        # rep += f"\n\t\tcount_tiles={self.tile_count},"
-        # rep += f"\n\t\tround_num={self.round_num}\n\t)"
 
-        rep: str = "Boneyard("
-        rep += f"draw_pile={self.draw_pile}, "
-        rep += f"tile_count={self.tile_count}, "
-        rep += f"round_num={self.round_num})"
-        return rep
+        indentation0: str = '    ' * (depth-1)
+        indentation1: str = '    ' * depth
+        indentation2: str = '    ' * (depth+1)
+        attributes: str = ""
+        if isinstance(self.draw_pile, list):
+            attributes += f"\n{indentation1}draw_pile=["
+            for i, domino in enumerate(self.draw_pile):
+                attributes += f"\n{indentation2}{domino}"
+                if i != len(self.draw_pile)-1:
+                    attributes += ","
+            attributes += f"\n{indentation1}]"
+        attributes += f"\n{indentation1}tile_count={self.tile_count}, "
+        attributes += f"\n{indentation1}round_num={self.round_num}"
+        return f"\n{indentation0}Boneyard({attributes}\n{indentation0})"
 
     def _update(self) -> None:
         """Updates the `tile_count` attribute.
@@ -100,12 +108,14 @@ class Player:
         self.ai: bool = ai
         self.hand: set[Domino] = set()
 
-    def __repr__(self) -> str:
+    def __repr__(self, depth: int = 1) -> str:
         """Representation of an instance of `Player`."""
-        rep: str = "Player("
-        rep += f"ai={self.ai}, "
-        rep += f"hand={self.hand})"
-        return rep
+        indentation0: str = '    ' * (depth-1)
+        indentation1: str = '    ' * depth
+        attributes: str = ""
+        attributes += f"\n{indentation1}ai={self.ai}, "
+        attributes += f"\n{indentation1}hand={self.hand})"
+        return f"\n{indentation0}Player({attributes}\n{indentation0})"
     
     def draw(self, boneyard: Boneyard) -> None:
         """Takes the last domino in the passed boneyard and puts it in the
@@ -127,13 +137,25 @@ class Branch:
             self.train_on = False
         self.train: list[Domino] = []
 
-    def __repr__(self) -> str:
+    def __repr__(self, depth: int = 1) -> str:
         """Representation of a `Branch` on the `Board`"""
-        rep: str = "Branch("
-        rep += f"player={self.player}, "
-        rep += f"train_on={self.train_on}, "
-        rep += f"train={self.train})"
-        return rep
+        indentation0: str = '    ' * (depth-1)
+        indentation1: str = '    ' * depth
+        indentation2: str = '    ' * (depth+1)
+        attributes: str = ""
+        if isinstance(self.player, Player):
+            attributes += f"\n{indentation1}player={self.player.__repr__(depth+2)},"
+        else:
+            attributes += f"\n{indentation1}player=None,"
+        attributes += f"\n{indentation1}train_on={self.train_on},"
+        if isinstance(self.train, list):
+            attributes += f"\n{indentation1}train=["
+            for i, domino in enumerate(self.train):
+                attributes += f"\n{indentation2}{domino}"
+                if i != len(self.train)-1:
+                    attributes += ","
+            attributes += f"\n{indentation1}]"
+        return f"\n{indentation0}Branch({attributes}\n{indentation0})"
 
     def toggle_train_on(self) -> None:
         """Toggles whether the branch is set to be able to be played on by
@@ -142,6 +164,10 @@ class Branch:
         """
         if self.player:
             self.train_on = not self.train_on
+
+    def add_to_train(self, domino: Domino) -> None:
+        """Adds the passed `Domino` to the end of the branch's `train`."""
+        self.train.append(domino)
 
 
 class Board:
@@ -157,17 +183,28 @@ class Board:
             self.branches.append(Branch(player))
         for _ in range(AMMT_BRANCHES-len(self.players)):
             self.branches.append(Branch())
-        
-        for i, branch in enumerate(self.branches):
-            print(f"branch_{i}={branch}")
 
-    def __repr__(self) -> str:
-        rep: str = "Board("
-        rep += f"branches={self.branches}, "
-        rep += f"round_num={self.round_num}, "
-        rep += f"middle_tile={self.middle_tile}, "
-        rep += f"players={self.players})"
-        return rep
+    def __repr__(self, depth: int = 1) -> str:
+        indentation0: str = '    ' * (depth-1)
+        indentation1: str = '    ' * depth
+        attributes: str = ""
+        if isinstance(self.branches, list):
+            attributes += f"\n{indentation1}branches=["
+            for i, branch in enumerate(self.branches):
+                attributes += branch.__repr__(depth+2)
+                if i != len(self.branches)-1:
+                    attributes += ","
+            attributes += f"\n{indentation1}]"
+        attributes += f"\n{indentation1}round_num={self.round_num}, "
+        attributes += f"\n{indentation1}middle_tile={self.middle_tile}, "
+        if isinstance(self.players, list):
+            attributes += f"\n{indentation1}players=["
+            for i, player in enumerate(self.players):
+                attributes += player.__repr__(depth+2)
+                if i != len(self.players)-1:
+                    attributes += ","
+            attributes += f"\n{indentation1}]"
+        return f"\n{indentation0}Board({attributes}\n{indentation0})"
 
 
 class Game:
@@ -189,22 +226,31 @@ class Game:
         self.boneyard: Boneyard = None
         self.board: Board = None
 
-    def __repr__(self) -> None:
+    def __repr__(self, depth: int = 1) -> None:
         """Representation of all current game info."""
-        rep: str = "Game("
-        rep += f"ammt_players={self.ammt_players}, "
-        rep += f"players={self.players}, "
-        rep += f"turn_i={self.turn_i}, "
-        rep += f"round_num={self.round_num}, "
-        rep += f"boneyard={self.boneyard}, "
-        rep += f"board={self.board})"
-        return rep
+        indentation0: str = '    ' * (depth-1)
+        indentation1: str = '    ' * depth
+        attributes: str = ""
+        attributes += f"\n{indentation1}ammt_players={self.ammt_players},"
+        if isinstance(self.players, list):
+            attributes += f"\n{indentation1}players=["
+            for i, player in enumerate(self.players):
+                attributes += player.__repr__(depth+2)
+                if i != len(self.players)-1:
+                    attributes += ","
+            attributes += f"\n{indentation1}]"
+        attributes += f"\n{indentation1}turn_i={self.turn_i},"
+        attributes += f"\n{indentation1}round_num={self.round_num},"
+        if isinstance(self.boneyard, Boneyard):
+            attributes += f"\n{indentation1}boneyard={self.boneyard.__repr__(depth+2)},"
+        if isinstance(self.board, Board):
+            attributes += f"\n{indentation1}board={self.board.__repr__(depth+1)}"
+        return f"\n{indentation0}Game({attributes}\n{indentation0})"
 
     def gameloop(self) -> None:
         """Handle the main gameloop."""
         while self.round_num >= 0:
             self._roundloop()
-            print(self)
             return              # For testing the round loop for one round
             self.round_num -= 1
 
@@ -213,14 +259,15 @@ class Game:
         self._round_init()
         self._update_turn()
         
+        # initial_train()                   # TODO
         # show_possible_moves()             # TODO
         # if no_possible_moves              # TODO
-            # draw_tile()                   # TODO
-            #    update_DrawPile()          # TODO
-            # if can_play                   # TODO
-                # play_tile()               # TODO
+        #    draw_tile()                    # TODO
+        #    update_DrawPile()              # TODO
+        #    if can_play                    # TODO
+        #       play_tile()                 # TODO
         # else                              # TODO
-            # choose_move() ~               # TODO
+        #    choose_move() ~                # TODO
 
     def _round_init(self) -> None:
         """Starts the round."""
@@ -247,6 +294,7 @@ def main():
     """Runs the game."""
     game = Game()
     game.gameloop()
+    print(game)
     
 
 if __name__ == '__main__':
