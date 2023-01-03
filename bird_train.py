@@ -244,7 +244,7 @@ class Game:
         if isinstance(self.boneyard, Boneyard):
             attributes += f"\n{indentation1}boneyard={self.boneyard.__repr__(depth+2)},"
         if isinstance(self.board, Board):
-            attributes += f"\n{indentation1}board={self.board.__repr__(depth+1)}"
+            attributes += f"\n{indentation1}board={self.board.__repr__(depth+2)}"
         return f"\n{indentation0}Game({attributes}\n{indentation0})"
 
     def gameloop(self) -> None:
