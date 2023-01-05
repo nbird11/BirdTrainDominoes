@@ -1,7 +1,7 @@
-"""Houses the `Constants` class."""
-class Constants:
-    """Program-wide constants"""
-    AMMT_PLAYERS: int = 4
-    DEAL_AMMT: int = 15
-    DOUBLE_TWELVES_VALUE: int = 12
-    AMMT_BRANCHES: int = 8
+"""Constants to be used across the entire program."""
+
+AMMT_PLAYERS: int = 4
+DEAL_AMMT: int = 15
+DOUBLE_TWELVES_VALUE: int = 12
+AMMT_BRANCHES: int = 8
+MAX_ASCII_DOMINO_LEN = 10

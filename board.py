@@ -1,6 +1,6 @@
 """Houses the `Board` class."""
 
-from constants import Constants
+import constants
 from player import Player
 from branch import Branch
 from domino import Domino
@@ -16,7 +16,7 @@ class Board:
         # Create list of all branches stemming from the middle
         for player in self.players:
             self.branches.append(Branch(player))
-        for _ in range(Constants.AMMT_BRANCHES-len(self.players)):
+        for _ in range(constants.AMMT_BRANCHES-len(self.players)):
             self.branches.append(Branch())
 
     def __repr__(self, depth: int = 1) -> str:

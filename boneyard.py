@@ -1,7 +1,7 @@
 """Houses the `Boneyard` class."""
 
 import random
-from constants import Constants
+import constants
 from domino import Domino
 
 class Boneyard:
@@ -9,8 +9,8 @@ class Boneyard:
     def __init__(self, num_round: int) -> None:
         """Constructs a new `Boneyard` with all the dominoes in the game."""
         self.draw_pile: list[Domino] = []
-        for i in range(Constants.DOUBLE_TWELVES_VALUE+1):
-            for j in range(i, Constants.DOUBLE_TWELVES_VALUE+1):
+        for i in range(constants.DOUBLE_TWELVES_VALUE+1):
+            for j in range(i, constants.DOUBLE_TWELVES_VALUE+1):
                 if not ((i == j) and (i == num_round)):
                     domino = Domino(i, j)
                     self.draw_pile.append(domino)

@@ -1,6 +1,6 @@
 """Houses the `Game` class."""
 
-from constants import Constants
+import constants
 from player import Player
 from boneyard import Boneyard
 from board import Board
@@ -9,7 +9,7 @@ class Game:
     """Handles all game actions."""
     def __init__(self) -> None:
         """Constructs a `Game` object"""
-        self.ammt_players: int = Constants.AMMT_PLAYERS
+        self.ammt_players: int = constants.AMMT_PLAYERS
         self.players: list[Player] = []
         # Create each player, taking amount of AI players into account
         print(f"\nGAME: START\n")
@@ -78,7 +78,7 @@ class Game:
         """Deals the tiles from the boneyard. Is called at the beginning of
         each round.
         """
-        for _ in range(Constants.DEAL_AMMT):
+        for _ in range(constants.DEAL_AMMT):
             for player in self.players:
                 player.draw(self.boneyard)
 
