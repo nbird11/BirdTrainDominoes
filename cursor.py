@@ -22,14 +22,14 @@ def _add_domino(domino: Domino) -> None:
 
     global _cursor_rows
 
-    four_top = '○ ○○○'
-    four_across = '○○ ○○'
-    four_btm = '○○○ ○'
-    three_across = '○ ○ ○'
-    two_across = '○   ○'
-    one_top = '○    '
-    one_mid = '  ○  '
-    one_btm = '    ○'
+    four_top = '● ●●●'
+    four_across = '●● ●●'
+    four_btm = '●●● ●'
+    three_across = '● ● ●'
+    two_across = '●   ●'
+    one_top = '●    '
+    one_mid = '  ●  '
+    one_btm = '    ●'
     blank_across = '     '
 
     # Add vertical domino.
@@ -251,25 +251,27 @@ def _add_domino(domino: Domino) -> None:
             _cursor_rows[5] += f'{blank_across}│'
 
 
-def _add_train() -> None:
+def _add_train(initials: str) -> None:
     """Adds an ascii representation of a train to `_cursor_rows` to signify that you can't
     play on that branch.
     """
+    global _cursor_rows
 
-    _cursor_rows[0] += '                 '
-    _cursor_rows[1] += '─┬─────┬─        '
-    _cursor_rows[2] += ' │ ╭─╮ │    __   '
-    _cursor_rows[3] += ' │ │ │ ├┬───╲╱┐  '
-    _cursor_rows[4] += ' │ ╰─╯ │       ╲ '
-    _cursor_rows[5] += ' │ __  │  _  _  )'
-    _cursor_rows[6] += ' └╱  ╲─┴─╱ ╲╱ ╲╱ '
-    _cursor_rows[7] += '  ╲__╱   ╲_╱╲_╱  '
-    _cursor_rows[8] += '                 '
+    assert len(initials) == 3, "Initials need to be exactly three characters long."
+
+    _cursor_rows[0] += "                 "
+    _cursor_rows[1] += "    -  - ----.   "
+    _cursor_rows[2] += " - - -----,   )  "
+    _cursor_rows[3] += "  ___  %s ╲_╱   " % initials
+    _cursor_rows[4] += "_[  o'──^───U──╮ "
+    _cursor_rows[5] += "│_'------------┤ "
+    _cursor_rows[6] += " (○)(○)──(○)(○)_╲"
+    _cursor_rows[7] += "                 "
+    _cursor_rows[8] += "                 "
 
 
 def _draw() -> None:
     """Draws what is stored in `_cursor_rows` then resets the cursor."""
-    
     global _cursor_rows
 
     for row in _cursor_rows:
@@ -289,11 +291,14 @@ def _draw() -> None:
     ]
 
 
+def draw_domino(domino: Domino) -> None:
+    """Draws a single domino on one line."""
+    _add_domino(domino)
+    _draw()
+
+
 def draw_branch(branch: Branch) -> None:
     """Draws a single train or line of dominoes to the screen."""
-
-    global _cursor_rows
-
     train = branch.train
     if len(train) > constants.MAX_ASCII_DOMINO_LEN:
         for domino in train[len(train)-constants.MAX_ASCII_DOMINO_LEN:len(train)]:
@@ -301,9 +306,9 @@ def draw_branch(branch: Branch) -> None:
     else:
         for domino in train:
             _add_domino(domino)
-    
+
     if branch.train_on:
-        _add_train()
+        _add_train(branch.player.initials)
 
     _draw()
 
@@ -314,6 +319,21 @@ def draw_branches(branches: list[Branch]) -> None:
         draw_branch(branch)
 
 
-# def draw_hand(self, hand: set(Domino)) -> None:
-#     """Draws a player's hand of dominoes."""
-#     ...
+def draw_list(dominos: list[Domino]) -> None:
+    """Draws a list of dominoes."""
+
+    if len(dominos) > constants.MAX_ASCII_DOMINO_LEN:
+        first_half: list[Domino] = [domino for domino in dominos[:int(len(dominos)/2)]]
+        second_half: list[Domino] = [domino for domino in dominos[int(len(dominos)/2):]]
+
+        for domino in first_half:
+            _add_domino(domino)
+        _draw()
+
+        for domino in second_half:
+            _add_domino(domino)
+        _draw()
+    else:
+        for domino in dominos:
+            _add_domino(domino)
+        _draw()

@@ -4,6 +4,7 @@ import constants
 from player import Player
 from boneyard import Boneyard
 from board import Board
+from time import sleep
 
 class Game:
     """Handles all game actions."""
@@ -12,14 +13,29 @@ class Game:
         self.ammt_players: int = constants.AMMT_PLAYERS
         self.players: list[Player] = []
         # Create each player, taking amount of AI players into account
-        print(f"\nGAME: START\n")
-        ammt_players_real = int(input(f"How many real players? (1-{self.ammt_players})\n> "))
-        for _ in range(self.ammt_players):
+        print(f"\n\n\n\n\n\n\n\n\nGAME: START\n\n\n\n\n\n\n\n\n")
+        sleep(constants.SLEEP_TIME)
+        while True:
+            ammt_players_real_str = input(f"How many real players? (1-{self.ammt_players})\n> ")
+            try:
+                ammt_players_real = int(ammt_players_real_str)
+                break
+            except:
+                print(f"\nERROR: Ammount of players must be an int (whole number).\n")
+                sleep(constants.SLEEP_TIME)
+        for i in range(self.ammt_players):
             if ammt_players_real:
-                self.players.append(Player())
+                while True:
+                    initials = input(f"Input initials for Player {i+1}: (3 characters)\n> ")
+                    if len(initials) == 3:
+                        break
+                    print("\nERROR: Initials must be length of 3 characters.\n")
+                    sleep(constants.SLEEP_TIME)
+                self.players.append(Player(ai=False, initials=initials))
                 ammt_players_real -= 1
             else:
-                self.players.append(Player(ai=True))
+                ai_num: int = i+1 - int(ammt_players_real_str)
+                self.players.append(Player(ai=True, initials=f'ai{ai_num}'))
         self.turn_i: int = -1       # Starts at -1 because `_update_turn` increments it
         self.round_num: int = 12
         self.boneyard: Boneyard = None

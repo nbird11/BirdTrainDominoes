@@ -1,9 +1,11 @@
 """Houses the `Board` class."""
 
 import constants
+import cursor
 from player import Player
 from branch import Branch
 from domino import Domino
+from time import sleep
 
 class Board:
     """TODO The board that the game is played on."""
@@ -47,30 +49,89 @@ class Board:
         AI players automatically calculate an initial train using the most pips;
         Regular players can choose the dominoes in their initial train.
         """
-        print(f"\nROUND {self.round_num}: INITIAL TRAINS\n")
+        print(f"\n\n\n\n\n\n\n\n\nROUND {self.round_num}: INITIAL TRAINS\n\n\n\n\n\n\n\n\n")
+        sleep(constants.SLEEP_TIME)
         for branch in self.branches:
             branch.train.append(self.middle_tile)
         for i_player, player in enumerate(self.players):
             # Real player picks their dominoes from options list.
             if not player.ai:
+                print(f"Player {i_player+1}: {player.initials}")
                 print(f"Middle tile: {self.middle_tile}")
+                cursor.draw_domino(self.middle_tile)
+
                 # Set initial compare value (which is the round number).
                 compare_value: int = self.round_num
+
                 # Get list of all dominos with ends matching round num and move them to options buffer.
                 options: list[Domino] = [domino for domino in player.hand if domino.end1_pips == compare_value or domino.end2_pips == compare_value]
                 for domino in options:
                     player.hand.remove(domino)
                     if domino.end2_pips == compare_value:
-                        domino.end1_pips, domino.end2_pips = domino.end2_pips, domino.end1_pips
-                print(f"Your hand: {player.hand}")
+                        domino.flip()
+
+                print(f"{player.initials}'s hand: {player.hand}")
+                cursor.draw_list(player.hand)
+
                 # Continue while options for playing still remain.
                 while options:
-                    # Print list with indicies for picking choice.
-                    print(f"Option number and domino for first domino in train: {[(i_options, domino) for i_options, domino in enumerate(options)]}")
-                    # Get choice (index).
-                    choice: int = int(input(f"Pick which domino to start: {[i_options for i_options in range(len(options))]}\n> "))
+                    # Print list of playable dominoes.
+                    print(f"Options: {options}")
+                    cursor.draw_list(options)
+                    
+                    # Parse command.
+                    while True:
+                        cmd_options = "\n'_|_'\t\t- pick a domino [replace underscores with pip values]"
+                        cmd_options += "\n'fl _|_'\t- flip a domino in your hand"
+                        cmd_options += "\n'sw _|_ _|_'\t- swap two dominos in your hand\n"
+                        choice_str = input(f"Input command:{cmd_options}\n> ")
+                        arg1 = choice_str.split(' ')[0]
+                        try:
+                            # Pick next domino
+                            if '|' in arg1:
+                                val1_str, val2_str = arg1.split('|')
+                                val1 = int(val1_str)
+                                val2 = int(val2_str)
+                                choice_domino = Domino(val1, val2)
+                                if choice_domino in options:
+                                    print(f"\nPLAYED DOMINO {choice_domino}.\n\n\n\n\n")
+                                    sleep(constants.SLEEP_TIME)
+                                    choice_domino = options[options.index(choice_domino)]
+                                    break
+                                else:
+                                    print(f"\nERROR: Choice not listed in options.\n\n\n\n\n")
+                                    sleep(constants.SLEEP_TIME)
+                            # Flip domino
+                            if 'fl' in arg1:
+                                arg2 = choice_str.split(' ')[1]
+                                val1_str, val2_str = arg2.split('|')
+                                val1 = int(val1_str)
+                                val2 = int(val2_str)
+                                flip_domino = Domino(val1, val2)
+                                if flip_domino in player.hand:
+                                    player.hand[player.hand.index(flip_domino)].flip()
+                                    print(f"\nFLIPPED DOMINO {flip_domino} IN HAND.\n\n\n\n\n")
+                                    sleep(constants.SLEEP_TIME)
+                                else:
+                                    print(f"\nERROR: Domino not listed in hand.\n\n\n\n\n")
+                                    sleep(constants.SLEEP_TIME)
+                            else:
+                                print(f"\nERROR: Command not valid.\n\n\n\n\n")
+                                sleep(constants.SLEEP_TIME)
+                        except:
+                            print(f"\nERROR: Command not valid.\n\n\n\n\n")
+                            sleep(constants.SLEEP_TIME)
 
-                    choice_domino: Domino = options[choice]
+                        if len(self.branches[i_player].train) == 1:
+                            print(f"Middle tile: {self.middle_tile}")
+                            cursor.draw_domino(self.middle_tile)
+                        else:
+                            print(f"Train: {self.branches[i_player].train}")
+                            cursor.draw_branch(self.branches[i_player])
+                        print(f"Hand: {player.hand}")
+                        cursor.draw_list(player.hand)
+                        print(f"Options: {options}")
+                        cursor.draw_list(options)
 
                     # Add domino to branch and remove from options buffer.
                     self.branches[i_player].add_to_train(choice_domino)
@@ -78,7 +139,7 @@ class Board:
 
                     # Return all dominoes in options buffer to hand.
                     for domino in options:
-                        player.hand.add(domino)
+                        player.hand.append(domino)
 
                     # Get new compare value
                     if choice_domino.end1_pips == compare_value:
@@ -90,17 +151,22 @@ class Board:
                     compare_value = new_compare_value
 
                     # Get new list of options for next domino in train and move from hand to options buffer.
-                    options = [domino for domino in player.hand if domino.end1_pips == compare_value or domino.end2_pips == compare_value]
+                    options = [domino for domino in player.hand if domino.matches(compare_value)]
                     for domino in options:
                         player.hand.remove(domino)
                         if domino.end2_pips == compare_value:
-                            domino.end1_pips, domino.end2_pips = domino.end2_pips, domino.end1_pips
+                            domino.flip()
 
                     # Print train and hand to screen
-                    print(f"Train: {self.branches[i_player].train}")
+                    print(f"\n\n\n\n\nTrain: {self.branches[i_player].train}")
+                    cursor.draw_branch(self.branches[i_player])
                     print(f"Hand: {player.hand}")
+                    cursor.draw_list(player.hand)
                 else:
-                    print("No options\n\n")
+                    print("\nNo options\n\n\n\n\n\n\n\n\n")
+                    sleep(constants.SLEEP_TIME)
             # AI calculates best initial train
             else:
                 ...
+        
+        cursor.draw_branches(self.branches[:constants.AMMT_PLAYERS])
