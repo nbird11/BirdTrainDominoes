@@ -67,7 +67,7 @@ class Board:
                 # Get list of all dominos with ends matching round num and move them to options buffer.
                 options: list[Domino] = [domino for domino in player.hand if domino.end1_pips == compare_value or domino.end2_pips == compare_value]
                 for domino in options:
-                    player.hand.remove(domino)
+                    # player.hand.remove(domino)
                     if domino.end2_pips == compare_value:
                         domino.flip()
 
@@ -83,22 +83,22 @@ class Board:
                         choice_domino = options[0]
                         sleeprint(f"\nPlayed domino {choice_domino} automatically.\n\n\n\n\n")
                         do_action = False
-                    else:
-                        # Print list of playable dominoes.
-                        print(f"Options: {options}")
-                        cursor.draw_list(options)
+                    else:...
+                        # # Print list of playable dominoes.
+                        # print(f"Options: {options}")
+                        # cursor.draw_list(options)
                     
                     # Parse command.
                     while do_action:
-                        cmd_options = "\n'_|_'\t\t- pick a domino [replace underscores with pip values]"
-                        cmd_options += "\n'fl _|_'\t- flip a domino in your hand"
-                        cmd_options += "\n'sw _|_ _|_'\t- swap two dominos in your hand\n"
+                        cmd_options = "\n'_-_'\t\t\t- pick a domino [replace underscores with pip values]"
+                        cmd_options += "\n'f _-_' | 'f [int]'\t- flip a domino | flip all dominoes matching int"
+                        cmd_options += "\n's _-_ _-_'\t\t- swap two dominos in your hand\n"
                         choice_str = input(f"Input command:{cmd_options}\n> ")
                         arg1 = choice_str.split(' ')[0]
                         try:
                             # Pick next domino
-                            if '|' in arg1:
-                                val1_str, val2_str = arg1.split('|')
+                            if '-' in arg1:
+                                val1_str, val2_str = arg1.split('-')
                                 val1 = int(val1_str)
                                 val2 = int(val2_str)
                                 choice_domino = Domino(val1, val2)
@@ -109,26 +109,38 @@ class Board:
                                 else:
                                     sleeprint(f"\nERROR: CHOICE NOT LISTED IN OPTIONS.\n\n\n\n\n")
                             # Flip domino
-                            elif 'fl' in arg1:
+                            elif 'f' in arg1:
                                 arg2 = choice_str.split(' ')[1]
-                                val1_str, val2_str = arg2.split('|')
-                                val1 = int(val1_str)
-                                val2 = int(val2_str)
-                                flip_domino = Domino(val1, val2)
-                                if flip_domino in player.hand:
-                                    player.hand[player.hand.index(flip_domino)].flip()
-                                    sleeprint(f"\nFlipped domino {flip_domino} in hand.\n\n\n\n\n")
+                                if '-' in arg2:
+                                    val1_str, val2_str = arg2.split('-')
+                                    val1 = int(val1_str)
+                                    val2 = int(val2_str)
+                                    flip_domino = Domino(val1, val2)
+                                    if flip_domino in player.hand:
+                                        player.hand[player.hand.index(flip_domino)].flip()
+                                        print(f"\n\n\n\n\nFlipped domino {flip_domino} in hand.\n")
+                                    else:
+                                        sleeprint(f"\nERROR: DOMINO NOT LISTED IN HAND.\n\n\n\n\n")
                                 else:
-                                    sleeprint(f"\nERROR: DOMINO NOT LISTED IN HAND.\n\n\n\n\n")
+                                    value = int(arg2)
+                                    flipped: bool = False
+                                    for domino in player.hand:
+                                        if domino.matches(value):
+                                            flipped = True
+                                            domino.flip()
+                                    if flipped:
+                                        print(f"\n\n\n\n\nFlipped all dominos matching {value} in hand.\n")
+                                    else:
+                                        sleeprint(f"\nERROR: NO DOMINOES IN HAND MATCHING VALUE.\n\n\n\n\n")
                             # Swap two dominoes
-                            elif 'sw' in arg1:
+                            elif 's' in arg1:
                                 arg2 = choice_str.split(' ')[1]
                                 arg3 = choice_str.split(' ')[2]
-                                dom1_val1_str, dom1_val2_str = arg2.split('|')
+                                dom1_val1_str, dom1_val2_str = arg2.split('-')
                                 dom1_val1 = int(dom1_val1_str)
                                 dom1_val2 = int(dom1_val2_str)
                                 swap_dom1 = Domino(dom1_val1, dom1_val2)
-                                dom2_val1_str, dom2_val2_str = arg3.split('|')
+                                dom2_val1_str, dom2_val2_str = arg3.split('-')
                                 dom2_val1 = int(dom2_val1_str)
                                 dom2_val2 = int(dom2_val2_str)
                                 swap_dom2 = Domino(dom2_val1, dom2_val2)
@@ -136,30 +148,35 @@ class Board:
                                     i_dom1 = player.hand.index(swap_dom1)
                                     i_dom2 = player.hand.index(swap_dom2)
                                     player.hand[i_dom1], player.hand[i_dom2] = player.hand[i_dom2], player.hand[i_dom1]
-                                    sleeprint(f"\nSwapped dominoes {swap_dom1} and {swap_dom2} in hand.\n\n\n\n\n")
+                                    print(f"\n\n\n\n\nSwapped dominoes {swap_dom1} and {swap_dom2} in hand.\n")
+                                else:
+                                    swap_doms: list[Domino] = [swap_dom1, swap_dom2]
+                                    display_doms = [domino for domino in swap_doms if domino not in player.hand]
+                                    sleeprint(f"\nERROR: DOMINO(ES) {display_doms} NOT LISTED IN HAND.\n\n\n\n\n")
                             else:
-                                sleeprint(f"\nERROR: COMMAND NOT VALID.\n\n\n\n\n")
+                                raise ValueError
                         except:
                             sleeprint(f"\nERROR: INVALID COMMAND SYNTAX.\n\n\n\n\n")
 
                         if len(self.branches[i_player].train) == 1:
-                            print(f"\nMiddle tile: {self.middle_tile}")
+                            print(f"Middle tile: {self.middle_tile}")
                             cursor.draw_domino(self.middle_tile)
                         else:
-                            print(f"\nTrain: {self.branches[i_player].train}")
+                            print(f"Train: {self.branches[i_player].train}")
                             cursor.draw_branch(self.branches[i_player])
                         print(f"Hand: {player.hand}")
                         cursor.draw_list(player.hand)
-                        print(f"Options: {options}")
-                        cursor.draw_list(options)
+                        # print(f"Options: {options}")
+                        # cursor.draw_list(options)
 
                     # Add domino to branch and remove from options buffer.
                     self.branches[i_player].add_to_train(choice_domino)
+                    player.hand.remove(choice_domino)
                     options.remove(choice_domino)
 
-                    # Return all dominoes in options buffer to hand.
-                    for domino in options:
-                        player.hand.append(domino)
+                    # # Return all dominoes in options buffer to hand.
+                    # for domino in options:
+                    #     player.hand.append(domino)
 
                     # Get new compare value
                     if choice_domino.end1_pips == compare_value:
@@ -173,7 +190,7 @@ class Board:
                     # Get new list of options for next domino in train and move from hand to options buffer.
                     options = [domino for domino in player.hand if domino.matches(compare_value)]
                     for domino in options:
-                        player.hand.remove(domino)
+                        # player.hand.remove(domino)
                         if domino.end2_pips == compare_value:
                             domino.flip()
 
