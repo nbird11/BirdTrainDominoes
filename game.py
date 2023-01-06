@@ -1,10 +1,10 @@
 """Houses the `Game` class."""
 
 import constants
+from constants import sleeprint
 from player import Player
 from boneyard import Boneyard
 from board import Board
-from time import sleep
 
 class Game:
     """Handles all game actions."""
@@ -13,24 +13,21 @@ class Game:
         self.ammt_players: int = constants.AMMT_PLAYERS
         self.players: list[Player] = []
         # Create each player, taking amount of AI players into account
-        print(f"\n\n\n\n\n\n\n\n\nGAME: START\n\n\n\n\n\n\n\n\n")
-        sleep(constants.SLEEP_TIME)
+        sleeprint(f"\n\n\n\n\n\n\n\n\nGame: Start\n\n\n\n\n\n\n\n\n")
         while True:
             ammt_players_real_str = input(f"How many real players? (1-{self.ammt_players})\n> ")
             try:
                 ammt_players_real = int(ammt_players_real_str)
                 break
             except:
-                print(f"\nERROR: Ammount of players must be an int (whole number).\n")
-                sleep(constants.SLEEP_TIME)
+                sleeprint(f"\nERROR: AMMOUNT OF PLAYERS MUST BE AN INT (WHOLE NUMBER).\n")
         for i in range(self.ammt_players):
             if ammt_players_real:
                 while True:
                     initials = input(f"Input initials for Player {i+1}: (3 characters)\n> ")
                     if len(initials) == 3:
                         break
-                    print("\nERROR: Initials must be length of 3 characters.\n")
-                    sleep(constants.SLEEP_TIME)
+                    sleeprint("\nERROR: INITIALS MUST BE LENGTH OF 3 CHARACTERS.\n")
                 self.players.append(Player(ai=False, initials=initials))
                 ammt_players_real -= 1
             else:

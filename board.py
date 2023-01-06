@@ -1,11 +1,13 @@
 """Houses the `Board` class."""
 
-import constants
 import cursor
-from player import Player
+import constants
+from constants import sleeprint
+from time import sleep
 from branch import Branch
 from domino import Domino
-from time import sleep
+from player import Player
+
 
 class Board:
     """TODO The board that the game is played on."""
@@ -49,8 +51,7 @@ class Board:
         AI players automatically calculate an initial train using the most pips;
         Regular players can choose the dominoes in their initial train.
         """
-        print(f"\n\n\n\n\n\n\n\n\nROUND {self.round_num}: INITIAL TRAINS\n\n\n\n\n\n\n\n\n")
-        sleep(constants.SLEEP_TIME)
+        sleeprint(f"\n\n\n\n\n\n\n\n\nRound {self.round_num}: Initial trains!\n\n\n\n\n\n\n\n\n")
         for branch in self.branches:
             branch.train.append(self.middle_tile)
         for i_player, player in enumerate(self.players):
@@ -73,14 +74,22 @@ class Board:
                 print(f"{player.initials}'s hand: {player.hand}")
                 cursor.draw_list(player.hand)
 
-                # Continue while options for playing still remain.
+                # Continue playing tiles until options becomes zero.
                 while options:
-                    # Print list of playable dominoes.
-                    print(f"Options: {options}")
-                    cursor.draw_list(options)
+                    do_action: bool = True
+
+                    # Only one option, play tile automatically.
+                    if len(options) == 1:
+                        choice_domino = options[0]
+                        sleeprint(f"\nPlayed domino {choice_domino} automatically.\n\n\n\n\n")
+                        do_action = False
+                    else:
+                        # Print list of playable dominoes.
+                        print(f"Options: {options}")
+                        cursor.draw_list(options)
                     
                     # Parse command.
-                    while True:
+                    while do_action:
                         cmd_options = "\n'_|_'\t\t- pick a domino [replace underscores with pip values]"
                         cmd_options += "\n'fl _|_'\t- flip a domino in your hand"
                         cmd_options += "\n'sw _|_ _|_'\t- swap two dominos in your hand\n"
@@ -94,15 +103,13 @@ class Board:
                                 val2 = int(val2_str)
                                 choice_domino = Domino(val1, val2)
                                 if choice_domino in options:
-                                    print(f"\nPLAYED DOMINO {choice_domino}.\n\n\n\n\n")
-                                    sleep(constants.SLEEP_TIME)
+                                    sleeprint(f"\nPlayed domino {choice_domino}.\n\n\n\n\n")
                                     choice_domino = options[options.index(choice_domino)]
                                     break
                                 else:
-                                    print(f"\nERROR: Choice not listed in options.\n\n\n\n\n")
-                                    sleep(constants.SLEEP_TIME)
+                                    sleeprint(f"\nERROR: CHOICE NOT LISTED IN OPTIONS.\n\n\n\n\n")
                             # Flip domino
-                            if 'fl' in arg1:
+                            elif 'fl' in arg1:
                                 arg2 = choice_str.split(' ')[1]
                                 val1_str, val2_str = arg2.split('|')
                                 val1 = int(val1_str)
@@ -110,23 +117,36 @@ class Board:
                                 flip_domino = Domino(val1, val2)
                                 if flip_domino in player.hand:
                                     player.hand[player.hand.index(flip_domino)].flip()
-                                    print(f"\nFLIPPED DOMINO {flip_domino} IN HAND.\n\n\n\n\n")
-                                    sleep(constants.SLEEP_TIME)
+                                    sleeprint(f"\nFlipped domino {flip_domino} in hand.\n\n\n\n\n")
                                 else:
-                                    print(f"\nERROR: Domino not listed in hand.\n\n\n\n\n")
-                                    sleep(constants.SLEEP_TIME)
+                                    sleeprint(f"\nERROR: DOMINO NOT LISTED IN HAND.\n\n\n\n\n")
+                            # Swap two dominoes
+                            elif 'sw' in arg1:
+                                arg2 = choice_str.split(' ')[1]
+                                arg3 = choice_str.split(' ')[2]
+                                dom1_val1_str, dom1_val2_str = arg2.split('|')
+                                dom1_val1 = int(dom1_val1_str)
+                                dom1_val2 = int(dom1_val2_str)
+                                swap_dom1 = Domino(dom1_val1, dom1_val2)
+                                dom2_val1_str, dom2_val2_str = arg3.split('|')
+                                dom2_val1 = int(dom2_val1_str)
+                                dom2_val2 = int(dom2_val2_str)
+                                swap_dom2 = Domino(dom2_val1, dom2_val2)
+                                if swap_dom1 in player.hand and swap_dom2 in player.hand:
+                                    i_dom1 = player.hand.index(swap_dom1)
+                                    i_dom2 = player.hand.index(swap_dom2)
+                                    player.hand[i_dom1], player.hand[i_dom2] = player.hand[i_dom2], player.hand[i_dom1]
+                                    sleeprint(f"\nSwapped dominoes {swap_dom1} and {swap_dom2} in hand.\n\n\n\n\n")
                             else:
-                                print(f"\nERROR: Command not valid.\n\n\n\n\n")
-                                sleep(constants.SLEEP_TIME)
+                                sleeprint(f"\nERROR: COMMAND NOT VALID.\n\n\n\n\n")
                         except:
-                            print(f"\nERROR: Command not valid.\n\n\n\n\n")
-                            sleep(constants.SLEEP_TIME)
+                            sleeprint(f"\nERROR: INVALID COMMAND SYNTAX.\n\n\n\n\n")
 
                         if len(self.branches[i_player].train) == 1:
-                            print(f"Middle tile: {self.middle_tile}")
+                            print(f"\nMiddle tile: {self.middle_tile}")
                             cursor.draw_domino(self.middle_tile)
                         else:
-                            print(f"Train: {self.branches[i_player].train}")
+                            print(f"\nTrain: {self.branches[i_player].train}")
                             cursor.draw_branch(self.branches[i_player])
                         print(f"Hand: {player.hand}")
                         cursor.draw_list(player.hand)
@@ -157,16 +177,16 @@ class Board:
                         if domino.end2_pips == compare_value:
                             domino.flip()
 
-                    # Print train and hand to screen
+                    # Draw train and hand to screen
                     print(f"\n\n\n\n\nTrain: {self.branches[i_player].train}")
                     cursor.draw_branch(self.branches[i_player])
                     print(f"Hand: {player.hand}")
                     cursor.draw_list(player.hand)
                 else:
-                    print("\nNo options\n\n\n\n\n\n\n\n\n")
-                    sleep(constants.SLEEP_TIME)
+                    sleeprint("\nNo options\n\n\n\n\n\n\n\n\n")
             # AI calculates best initial train
             else:
                 ...
         
         cursor.draw_branches(self.branches[:constants.AMMT_PLAYERS])
+        sleep(constants.SLEEP_TIME)
