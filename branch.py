@@ -36,6 +36,9 @@ class Branch:
             attributes += f"\n{indentation1}]"
         return f"\n{indentation0}Branch({attributes}\n{indentation0})"
 
+    def __eq__(self, _other: object) -> bool:
+        return self.__dict__ == _other.__dict__
+
     def toggle_train_on(self) -> None:
         """Toggles whether the branch is set to be able to be played on by
         anyone or not. If there is no player attached to the branch, `train_on`

@@ -251,23 +251,42 @@ def _add_domino(domino: Domino) -> None:
             _cursor_rows[5] += f'{blank_across}│'
 
 
-def _add_train(initials: str) -> None:
+def _add_train(id: str) -> None:
     """Adds an ascii representation of a train to `_cursor_rows` to signify that you can't
     play on that branch.
     """
     global _cursor_rows
 
-    assert len(initials) == 3, "Initials need to be exactly three characters long."
+    assert len(id) == 3, "ID needs to be exactly three characters long."
 
     _cursor_rows[0] += "                 "
     _cursor_rows[1] += "    -  - ----.   "
     _cursor_rows[2] += " - - -----,   )  "
-    _cursor_rows[3] += "  ___  %s ╲_╱   " % initials
+    _cursor_rows[3] += "  ___  %s ╲_╱   " % id
     _cursor_rows[4] += "_[  o'──^───U──╮ "
     _cursor_rows[5] += "│_'------------┤ "
     _cursor_rows[6] += " (○)(○)──(○)(○)_╲"
     _cursor_rows[7] += "                 "
     _cursor_rows[8] += "                 "
+
+
+def _add_id(id: str) -> None:
+    """Adds an ascii representation of a train to `_cursor_rows` to signify that you can't
+    play on that branch.
+    """
+    global _cursor_rows
+
+    assert len(id) == 3, "ID need to be exactly three characters long."
+
+    _cursor_rows[0] += "             "
+    _cursor_rows[1] += "             "
+    _cursor_rows[2] += "             "
+    _cursor_rows[3] += "             "
+    _cursor_rows[4] += "     %s     " % id
+    _cursor_rows[5] += "             "
+    _cursor_rows[6] += "             "
+    _cursor_rows[7] += "             "
+    _cursor_rows[8] += "             "
 
 
 def _draw() -> None:
@@ -307,8 +326,11 @@ def draw_branch(branch: Branch) -> None:
         for domino in train:
             _add_domino(domino)
 
-    if branch.train_on:
-        _add_train(branch.player.initials)
+    if branch.player:
+        if branch.train_on:
+            _add_train(branch.player.id)
+        else:
+            _add_id(branch.player.id)
 
     _draw()
 
