@@ -5,6 +5,7 @@ class Domino:
         """Constructs a `Domino`."""
         self.end1_pips: int = int(value_end1)
         self.end2_pips: int = int(value_end2)
+        self.total_pips: int = self.end1_pips + self.end2_pips
 
     def __repr__(self) -> str:
         """Representation of `Domino` object."""
@@ -22,3 +23,7 @@ class Domino:
     def matches(self, value: int) -> bool:
         """Returns bool, whether self domino could be played on a train with end `value`."""
         return self.end1_pips == value or self.end2_pips == value
+
+    def is_double(self) -> bool:
+        """Returns True if both ends are same value."""
+        return self.end1_pips == self.end2_pips

@@ -81,11 +81,11 @@ class Game:
         round_over = False
 
         # One loop constitutes an individual turn.
+        self._update_turn()     # TODO TEMPORARY: MOVE BACK IN NOT ROUNDOVER LOOP
         while not round_over:
-            self._update_turn()
-            self._turn()
-            if not round_over:
-                round_over = not round_over
+            self._turn(self.board)
+            # if not round_over:
+            #     round_over = not round_over
 
     def _round_init(self) -> None:
         """Starts the round."""
@@ -116,7 +116,7 @@ class Game:
         AI players automatically calculate an initial train using the most pips;
         Regular players can choose the dominoes in their initial train.
         """
-        sleeprint(f"\n\n\n\n\n\n\n\n\nRound {board.round_num}: Initial trains!\n\n\n\n\n\n\n\n\n")
+        sleeprint(f"\n\n\n\n\n\n\n\n\nRound {board.round_num}: Initial trains!\n")
         for branch in board.branches:
             branch.train.append(board.middle_tile)
         # <Loop through each player to build their train.>
@@ -221,9 +221,9 @@ class Game:
                                     sleeprint(f"\nERROR: DOMINO(ES) {display_doms} NOT LISTED IN HAND.\n\n\n\n\n")
                             # Auto pick domino.
                             elif 'auto' in arg1:
-                                # EASY PICK.
+                                # RANDOM PICK.
                                 choice_domino = options[0]
-                                sleeprint(f"\n\n\n\n\nAutomatically played domino {choice_domino}.\n", .5)
+                                sleeprint(f"\n\n\n\n\nAutomatically played domino {choice_domino}.\n", constants.SLEEP_TIME/2)
                                 break
                             else:
                                 raise ValueError
@@ -342,84 +342,126 @@ class Game:
         cursor.draw_branches(board.branches[:constants.AMMT_PLAYERS])
         sleep(constants.SLEEP_TIME)
 
-    def _turn(self) -> None:
+    def _turn(self, board: Board) -> None:
         """All actions comprising one player's turn."""
 
         cur_player = self.players[self.turn_i]
 
-        # Display all branches
-        print(f"\n\n\n\n\n\n\n\n\n\nBoard:\n")
-        cursor.draw_branches(self.board.branches)
-        sleep(constants.SLEEP_TIME)
-        sleeprint(f"\nPlayer {self.turn_i+1}: {self.players[self.turn_i].id}'s Turn\n")
-
         # Get play options
-        branch_ends: list[tuple[Domino, str] | Domino] = []
-        for branch in self.board.branches:
-            # print(f"\n\nbranch={branch}")
+        branch_ends: list[tuple[Domino, str]] = []
+        for branch in board.branches:
             end_domino = branch.train[len(branch.train)-1]
             if branch.player:
-                # print(f"branch has player")
-                # print(f"branch == self.board.branches[self.turn_i]={branch == self.board.branches[self.turn_i]}")
-                # print(f"not branch.train_on={not branch.train_on}")
-                if branch == self.board.branches[self.turn_i] or not branch.train_on:
-                    # print(f"appending domino {end_domino} w/ initials {branch.player.initials}")
+                if branch == board.branches[self.turn_i] or not branch.train_on:
                     branch_ends.append((end_domino, branch.player.id))
             else:
-                # print(f"appending domino {end_domino}")
-                if end_domino not in branch_ends: branch_ends.append(end_domino)
-        print(f"branch_ends={branch_ends}")
+                if end_domino not in branch_ends: branch_ends.append((end_domino, 'unowned'))
 
         options: list[Domino] = []
         for domino in cur_player.hand:
             for item in branch_ends:
-                value: int
-                if type(item) == tuple:
-                    value = item[0].end2_pips
-                else:
-                    value = item.end2_pips
-            if domino.matches(value):
-                if domino.end2_pips == value:
-                    domino.flip()
-                options.append(domino)
-
-
-        print(f"{cur_player.id}'s hand: {cur_player.hand}")
-        cursor.draw_list(cur_player.hand)
-
-        # print(f"Options: {options}")
-        # if options: cursor.draw_list(options)
+                value: int = item[0].end2_pips
+                if domino.matches(value):
+                    if domino.end2_pips == value:
+                        domino.flip()
+                    if domino not in options:
+                        options.append(domino)
 
         # <Real player make move.>
         if not cur_player.ai:
+
             # Parse command.
             while True:
-                cmd_options = "\n'_-_ _-_ [player_id]'\t- play first domino on second domino - add player_id if playing on another player's branch"
+                # Display all branches
+                print(f"\n\n\n\n\n\n\n\n\n\nBoard:\n")
+                cursor.draw_branches(board.branches)
+                print(f"\nPlayer {self.turn_i+1}: {self.players[self.turn_i].id}'s Turn\n")
+
+                print(f"{cur_player.id}'s hand: {cur_player.hand}")
+                cursor.draw_list(cur_player.hand)
+
+                # print(f"Options: {options}")
+                # if options: cursor.draw_list(options)
+
+                cmd_options = "\n'_-_ _-_ [player_id]'\t- play first domino on second domino - add player_id if playing on your or another player's branch"
                 cmd_options += "\n'f _-_'\t\t\t- flip a domino in hand"
-                cmd_options += "\n's _-_ _-_'\t\t- swap two dominos in hand\n"
+                cmd_options += "\n's _-_ _-_'\t\t- swap two dominos in hand"
+                cmd_options += "\n'd'\t\t\t- draw a domino"
                 choice_str = input(f"Input command:{cmd_options}\n> ")
-                arg1 = choice_str.split(' ')[0]
+                arg1: str = choice_str.split(' ')[0]
                 try:
-                    # Pick next domino
+                    # Play domino
                     if '-' in arg1:
-                        val1_str, val2_str = arg1.split('-')
-                        val1 = int(val1_str)
-                        val2 = int(val2_str)
-                        choice_domino = Domino(val1, val2)
-                        if choice_domino in options:
-                            sleeprint(f"\n\n\n\n\nPlayed domino {choice_domino}.\n")
-                            choice_domino = options[options.index(choice_domino)]
-                            break
+                        arg1_val1_str, arg1_val2_str = arg1.split('-')
+                        arg1_val1 = int(arg1_val1_str)
+                        arg1_val2 = int(arg1_val2_str)
+                        play_domino = Domino(arg1_val1, arg1_val2)
+                        if play_domino in options:
+                            play_domino = options[options.index(play_domino)]
+
+                            if len(choice_str.split(' ')) == 2:
+                                arg2 = choice_str.split(' ')[1]
+                                arg3 = 'unowned'
+                            elif len(choice_str.split(' ')) == 3:
+                                arg2 = choice_str.split(' ')[1]
+                                arg3 = choice_str.split(' ')[2]
+                            else:
+                                raise ValueError
+                            
+                            arg2_val1_str, arg2_val2_str = arg2.split('-')
+                            arg2_val1 = int(arg2_val1_str)
+                            arg2_val2 = int(arg2_val2_str)
+                            play_on_domino = Domino(arg2_val1, arg2_val2)
+                            play_on_id = arg3
+
+                            # Find branch to play domino to.
+                            played_domino: bool = False
+                            for branch in board.branches:
+                                if play_on_id != 'unowned':
+                                    if play_on_domino == branch.train[len(branch.train)-1] and play_on_id == branch.player.id:
+                                        if play_domino.matches(play_on_domino.end2_pips):
+                                            branch.add_to_train(play_domino)
+                                            cur_player.hand.remove(play_domino)
+                                            played_domino = True
+
+                                            sleeprint(f"\n\n\n\n\nPlayed domino {play_domino} to {play_on_id}'s branch.\n")
+                                            # Display all branches
+                                            print(f"\n\n\n\n\n\n\n\n\n\nBoard:\n")
+                                            cursor.draw_branches(board.branches)
+                                            sleep(constants.SLEEP_TIME)
+                                            if play_domino.is_double():
+                                                # TODO special case to play another domino of the same value.
+                                                break
+                                            return
+                                        else:
+                                            break
+                                else:
+                                    if play_on_domino == branch.train[len(branch.train)-1] and not branch.player:
+                                        if play_domino.matches(play_on_domino.end2_pips):
+                                            branch.add_to_train(play_domino)
+                                            cur_player.hand.remove(play_domino)
+                                            played_domino = True
+
+                                            sleeprint(f"\n\n\n\n\nPlayed domino {play_domino} to unowned branch.\n")
+                                            # Display all branches
+                                            print(f"\n\n\n\n\n\n\n\n\n\nBoard:\n")
+                                            cursor.draw_branches(board.branches)
+                                            sleep(constants.SLEEP_TIME)
+                                            return
+                                        else:
+                                            break
+                            if not played_domino:
+                                sleeprint(f"\nERROR: INVALID PLAY OPTION.\n\n\n\n\n")
                         else:
                             sleeprint(f"\nERROR: CHOICE NOT LISTED IN OPTIONS.\n\n\n\n\n")
                     # Flip domino
                     elif 'f' in arg1:
                         arg2 = choice_str.split(' ')[1]
                         if '-' in arg2:
-                            val1_str, val2_str = arg2.split('-')
-                            val1 = int(val1_str)
-                            val2 = int(val2_str)
-                            flip_domino = Domino(val1, val2)
+                            arg1_val1_str, arg1_val2_str = arg2.split('-')
+                            arg1_val1 = int(arg1_val1_str)
+                            arg1_val2 = int(arg1_val2_str)
+                            flip_domino = Domino(arg1_val1, arg1_val2)
                             if flip_domino in cur_player.hand:
                                 cur_player.hand[cur_player.hand.index(flip_domino)].flip()
                                 print(f"\n\n\n\n\nFlipped domino {flip_domino} in hand.\n")
@@ -436,6 +478,7 @@ class Game:
                                 print(f"\n\n\n\n\nFlipped all dominos matching {value} in hand.\n")
                             else:
                                 sleeprint(f"\nERROR: NO DOMINOES IN HAND MATCHING VALUE.\n\n\n\n\n")
+                                # Display all branches
                     # Swap two dominoes
                     elif 's' in arg1:
                         arg2 = choice_str.split(' ')[1]
@@ -457,16 +500,25 @@ class Game:
                             swap_doms: list[Domino] = [swap_dom1, swap_dom2]
                             display_doms = [domino for domino in swap_doms if domino not in cur_player.hand]
                             sleeprint(f"\nERROR: DOMINO(ES) {display_doms} NOT LISTED IN HAND.\n\n\n\n\n")
-                    # Auto pick domino.
-                    elif 'auto' in arg1:
-                        # EASY PICK.
-                        choice_domino = options[0]
-                        sleeprint(f"\n\n\n\n\nAutomatically played domino {choice_domino}.\n", .5)
-                        break
+                    # Draw a domino from the boneyard.
+                    elif 'd' in arg1:
+                        cur_player.draw(self.boneyard)
+                        print(f"\nDrew domino {cur_player.hand[len(cur_player.hand)-1]}")
+                        cursor.draw_list(cur_player.hand)
+                        sleep(constants.SLEEP_TIME)
+                        # TODO if can play drawn domino?
+                        return
+                    # TODO # Auto pick domino.
+                    # elif 'auto' in arg1:
+                    #     # RANDOM PICK.
+                    #     choice_domino = options[0]
+                    #     sleeprint(f"\n\n\n\n\nAutomatically played domino {choice_domino}.\n", .5)
+                    #     return
                     else:
                         raise ValueError
                 except:
                     sleeprint(f"\nERROR: INVALID COMMAND SYNTAX.\n\n\n\n\n")
+
         # <AI make move.>
         else:...
                 
