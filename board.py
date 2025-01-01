@@ -8,6 +8,7 @@ from player import Player
 
 class Board:
     """The board that the game is played on."""
+
     def __init__(self, num_round: int, players: list[Player]) -> None:
         """Constructs a `Board` object for the round."""
         self.branches: list[Branch] = []
@@ -17,18 +18,18 @@ class Board:
         # Create list of all branches stemming from the middle
         for player in self.players:
             self.branches.append(Branch(player))
-        for _ in range(constants.AMMT_BRANCHES-len(self.players)):
+        for _ in range(constants.AMMT_BRANCHES - len(self.players)):
             self.branches.append(Branch())
 
     def __repr__(self, depth: int = 1) -> str:
-        indentation0: str = '    ' * (depth-1)
-        indentation1: str = '    ' * depth
+        indentation0: str = "    " * (depth - 1)
+        indentation1: str = "    " * depth
         attributes: str = ""
         if isinstance(self.branches, list):
             attributes += f"\n{indentation1}branches=["
             for i, branch in enumerate(self.branches):
-                attributes += branch.__repr__(depth+2)
-                if i != len(self.branches)-1:
+                attributes += branch.__repr__(depth + 2)
+                if i != len(self.branches) - 1:
                     attributes += ","
             attributes += f"\n{indentation1}],"
         attributes += f"\n{indentation1}round_num={self.round_num},"
@@ -36,8 +37,8 @@ class Board:
         if isinstance(self.players, list):
             attributes += f"\n{indentation1}players=["
             for i, player in enumerate(self.players):
-                attributes += player.__repr__(depth+2)
-                if i != len(self.players)-1:
+                attributes += player.__repr__(depth + 2)
+                if i != len(self.players) - 1:
                     attributes += ","
             attributes += f"\n{indentation1}]"
         return f"\n{indentation0}Board({attributes}\n{indentation0})"

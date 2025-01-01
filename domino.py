@@ -1,6 +1,9 @@
 """Houses the `Domino` class."""
+
+
 class Domino:
     """A tile that has a certain amount of dots (pips) on both ends."""
+
     def __init__(self, value_end1: int, value_end2: int) -> None:
         """Constructs a `Domino`."""
         self.end1_pips: int = int(value_end1)
@@ -10,10 +13,13 @@ class Domino:
     def __repr__(self) -> str:
         """Representation of `Domino` object."""
         return f"{self.end1_pips}|{self.end2_pips}"
-    
+
     def __eq__(self, _other: object) -> bool:
-        if isinstance(_other, self.__class__):
-            return self.__dict__ == _other.__dict__ or (self.end1_pips == _other.end2_pips and self.end2_pips == _other.end1_pips)
+        if isinstance(_other, type(self)):
+            return self.__dict__ == _other.__dict__ or (
+                self.end1_pips == _other.end2_pips
+                and self.end2_pips == _other.end1_pips
+            )
         return False
 
     def flip(self) -> None:
